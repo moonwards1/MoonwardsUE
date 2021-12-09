@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{651E5A42-4AA3-B8B8-E142-FEBA0771089A}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "MoonwardsUE",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
