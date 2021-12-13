@@ -13,3 +13,15 @@ Saved
 *.xcodeproj
 *.xcworkspace
 *.log
+
+# KDevelop/QT and other linux generated files
+.kdev4
+.ignore
+CMakeLists.txt
+Makefile
+*.code-workspace
+*.workspace
+*.pro
+*.pri
+*CodeCompletionFolders.txt
+*CodeLitePreProcessor.txt
