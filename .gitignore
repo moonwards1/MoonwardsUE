@@ -19,6 +19,7 @@ Saved
 .ignore
 CMakeLists.txt
 Makefile
+*.kdev4
 *.code-workspace
 *.workspace
 *.pro
