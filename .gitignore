@@ -17,6 +17,7 @@ Saved
 # KDevelop/QT and other linux generated files
 .kdev4
 .ignore
+.idea
 CMakeLists.txt
 Makefile
 *.kdev4
@@ -26,3 +27,6 @@ Makefile
 *.pri
 *CodeCompletionFolders.txt
 *CodeLitePreProcessor.txt
+MoonwardsUE.sln.DotSettings.user
+
+MoonwardsUE.uproject.DotSettings.user
