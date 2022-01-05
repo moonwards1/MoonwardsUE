@@ -33,7 +33,7 @@ void UMWLogger::LogMessage(FString const Message, UObject const* Caller, EMWLogC
 	auto const TokenizedMessage = FTokenizedMessage::Create(static_cast<EMessageSeverity::Type>(Severity), FText::FromString(Message));
 
 	// @TODO: Clean this up. Oughta be some better ways to get the stack & check for validity.
-
+	// @TODO: Add a way to tokenized code classes and also check if they're called from within a blueprint.
 	if (IsValid(Caller))
 	{
 		// Add the caller token
@@ -61,7 +61,7 @@ void UMWLogger::LogMessage(FString const Message, UObject const* Caller, EMWLogC
 	// Code to dump a callstack, if we ever need to.
 	//FDebug::DumpStackTraceToLog(*FString("---STACK TRACE---\n"), ELogVerbosity::Error);
 
-	FMessageLog(FName("RizingTidez")).AddMessage(TokenizedMessage);
+	FMessageLog(FName("MoonwardsLog")).AddMessage(TokenizedMessage);
 #endif 
 }
 
@@ -77,6 +77,6 @@ void UMWLogger::LogMessage(FString Message, FString CallerName, EMWLogCategory L
 
 	auto const TokenizedMessage = FTokenizedMessage::Create(static_cast<EMessageSeverity::Type>(Severity), FText::FromString(Message));
 
-	FMessageLog(FName("RizingTidez")).AddMessage(TokenizedMessage);
+	FMessageLog(FName("MoonwardsLog")).AddMessage(TokenizedMessage);
 #endif 
 }

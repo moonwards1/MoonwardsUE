@@ -1,20 +1,34 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "MoonwardsLogger.h"
 
-#define LOCTEXT_NAMESPACE "FMoonwardsLoggerModule"
+#include "MessageLog/Public/MessageLogModule.h"
+#include "MessageLog/Public/MessageLogInitializationOptions.h"
 
 void FMoonwardsLoggerModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-	
+#if WITH_EDITOR
+	// Check MessageLog Module is loaded
+	FMessageLogModule& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>("MessageLog");
+	FMessageLogInitializationOptions InitOptions;
+	InitOptions.bShowPages = true;
+	InitOptions.bAllowClear = true;
+	InitOptions.bShowFilters = true;
+	InitOptions.bShowInLogWindow = true;
+	// Create a new log listing with our module's name
+	MessageLogModule.RegisterLogListing("MoonwardsLog", NSLOCTEXT("Moonwards Log", "MoonwardsLogLabel", "Moonwards Log"), InitOptions);
+#endif
 }
 
 void FMoonwardsLoggerModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
-	
+#if WITH_EDITOR
+
+	if (FModuleManager::Get().IsModuleLoaded("MoonwardsLog"))
+	{
+		// unregister message log
+		FMessageLogModule& MessageLogModule = FModuleManager::GetModuleChecked<FMessageLogModule>("MessageLog");
+		MessageLogModule.UnregisterLogListing("MoonwardsLog");
+	}
+#endif
 }
 
 #undef LOCTEXT_NAMESPACE
