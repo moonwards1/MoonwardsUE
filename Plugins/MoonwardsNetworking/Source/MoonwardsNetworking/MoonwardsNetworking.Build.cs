@@ -26,7 +26,14 @@ public class MoonwardsNetworking : ModuleRules
 			new string[]
 			{
 				"Core",
-				// ... add other public dependencies that you statically link with here ...
+				"PacketHandler",
+				"Engine",
+
+				"OnlineSubsystem", 
+                "OnlineSubsystemUtils",
+                
+                "MoonwardsLogger",
+                // ... add other public dependencies that you statically link with here ...
 			}
 			);
 			
@@ -36,9 +43,6 @@ public class MoonwardsNetworking : ModuleRules
 			{
 				"CoreUObject",
 				"Engine",
-				"Slate",
-				"SlateCore",
-				// ... add private dependencies that you statically link with here ...	
 			}
 			);
 		
