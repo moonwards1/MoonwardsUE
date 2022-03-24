@@ -52,6 +52,7 @@ TArray<TSharedPtr<FUserOnlineAccount>> FOnlineIdentityMoonwards::GetAllUserAccou
 
 FUniqueNetIdPtr FOnlineIdentityMoonwards::GetUniquePlayerId(int32 LocalUserNum) const
 {
+	// return MakeShareable<FUniqueNetId>(UniqueNetId);
 	return nullptr;
 }
 
