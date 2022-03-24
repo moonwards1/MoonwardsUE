@@ -8,6 +8,9 @@
 #include "Interfaces/OnlineIdentityInterface.h"
 
 #include "Subsystems/GameInstanceSubsystem.h"
+
+#include "Types/LoginStatusOss.h"
+
 #include "OnlineSubsystemIdentity.generated.h"
 
 // Called for all existing clients, used by the server.
@@ -38,15 +41,19 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "OSS Identity | Client")
 	FLocalClientLoginCompletedDelegate OnLocalClientLoginCompleted;
 	
-
+	// Attempts to login to the OSS Server as a client.
 	UFUNCTION(BlueprintCallable, Category = "OSS Identity | Client")
-	void TryClientLogin(FString& AuthToken) const;
+	void TryClientLogin(FString AuthToken) const;
 
 	// UFUNCTION(BlueprintCallable, Category = "OSS Identity | Client")
 	// FString GetLocalClientUniqueId();
 	
 	UFUNCTION(BlueprintCallable, Category = "OSS Identity | Client")
 	FString GetLocalClientDisplayName();
+
+	UFUNCTION(BlueprintCallable, Category = "OSS Identity | Client")
+	bool IsLocalClientLoggedIn() const;
+	
 	/*
 	 * SERVER 
 	 */
@@ -55,7 +62,13 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "OSS Identity | Server")
 	FRemoteClientLoginCompletedDelegate OnRemoteClientLoginCompleted;
 
+	UFUNCTION(BlueprintCallable, Category = "OSS Identity | Server")
+	ELoginStatusOss GetLoginStatus(int32 LocalUserNum) const;
+	
+	/*
+	 * CALLBACKS
+	 */
 	// Called after a client's login request has received a response.
 	void OnClientLoggedIn(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error) const;
-
+	
 };

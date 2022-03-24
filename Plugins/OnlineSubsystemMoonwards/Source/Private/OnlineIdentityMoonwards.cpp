@@ -134,10 +134,16 @@ void FOnlineIdentityMoonwards::OnLoginRequestCompleted(FHttpRequestPtr Request, 
 	UniqueNetId.UserId = LoginResult->Id;
 	DisplayName = LoginResult->Username;
 
-	LoginStatus = ELoginStatus::Type::LoggedIn;
+	if(!LoginResult->Id.IsEmpty())
+	{
+		LoginStatus = ELoginStatus::Type::LoggedIn;
 	
-	// Broadcast events using online subsystem syntax
-	TriggerOnLoginChangedDelegates(0);
-	TriggerOnLoginCompleteDelegates(0, true, UniqueNetId, FString() );
-	
+		// Broadcast events using online subsystem syntax
+		TriggerOnLoginChangedDelegates(0);
+		TriggerOnLoginCompleteDelegates(0, true, UniqueNetId, FString() );
+	}else
+	{
+		TriggerOnLoginChangedDelegates(0);
+		TriggerOnLoginCompleteDelegates(0, false, UniqueNetId, FString() );
+	}
 }
