@@ -40,7 +40,9 @@ void UOnlineSubsystemIdentity::OnClientLoggedIn(int32 LocalUserNum, bool bWasSuc
 		UE_LOG_ONLINE(Error, TEXT("Failed to login "))
 	
 	if(/*is Client and*/ LocalUserNum == 0)
+		
 		OnLocalClientLoginCompleted.Broadcast(bWasSuccessful);
 	//if(bIsServer)
 		OnRemoteClientLoginCompleted.Broadcast(LocalUserNum, bWasSuccessful);
+		
 }
