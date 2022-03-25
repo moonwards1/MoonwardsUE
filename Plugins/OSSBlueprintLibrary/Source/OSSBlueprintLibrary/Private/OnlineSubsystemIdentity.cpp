@@ -43,6 +43,6 @@ void UOnlineSubsystemIdentity::OnClientLoggedIn(int32 LocalUserNum, bool bWasSuc
 		
 		OnLocalClientLoginCompleted.Broadcast(bWasSuccessful);
 	//if(bIsServer)
-		OnRemoteClientLoginCompleted.Broadcast(LocalUserNum, bWasSuccessful);
+	OnRemoteClientLoginCompleted.Broadcast(LocalUserNum, bWasSuccessful);
 		
 }
