@@ -27,6 +27,7 @@ public class OnlineSubsystemMoonwards : ModuleRules
 			{
 				"Core", 
 				"OnlineSubsystem",
+				"OnlineSubsystemUtils",
 				"Http", 
 				"Json", 
 				"JsonUtilities"

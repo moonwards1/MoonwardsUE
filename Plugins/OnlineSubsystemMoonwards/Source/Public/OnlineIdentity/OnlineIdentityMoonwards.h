@@ -6,6 +6,7 @@
 
 #pragma once
 #include "Http.h"
+#include "OnlineUserAccountMoonwards.h"
 
 #include "Interfaces/OnlineIdentityInterface.h"
 
@@ -21,11 +22,11 @@ public:
 	virtual ~FOnlineIdentityMoonwards() override {};
 	
 protected:
-	FString DisplayName;
+
 	FHttpModule* Http = nullptr;
-	ELoginStatus::Type LoginStatus = ELoginStatus::Type::NotLoggedIn;
-	FUniqueNetIdMoonwards UniqueNetId;
-	
+	TMap<FString, FUserOnlineAccountMoonwardsRef> UserAccounts;
+	TMap<int32, FUniqueNetIdMoonwardsRef> UserIds;
+
 public:
 	virtual bool Login(int32 LocalUserNum, const FOnlineAccountCredentials& AccountCredentials) override;
 	virtual bool Logout(int32 LocalUserNum) override;

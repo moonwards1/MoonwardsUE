@@ -13,14 +13,13 @@ public:
 
 	FUniqueNetIdMoonwards() {};
 	
-	explicit FUniqueNetIdMoonwards(const FString& UserId)
+	FUniqueNetIdMoonwards(const FString& UserId)
 		: UserId(UserId)
 	{
 	}
 
-	FUniqueNetIdMoonwards(const FUniqueNetId& Src, const FString& UserId)
-		: FUniqueNetId(Src),
-		  UserId(UserId)
+	FUniqueNetIdMoonwards(const FUniqueNetId& Src)
+		: FUniqueNetId(Src)
 	{
 	}
 
@@ -36,3 +35,6 @@ public:
 protected:
 	virtual bool Compare(const FUniqueNetId& Other) const override;
 };
+
+typedef TSharedPtr<FUniqueNetIdMoonwards, ESPMode::Fast> FUniqueNetIdMoonwardsPtr;
+typedef TSharedRef<FUniqueNetIdMoonwards, ESPMode::Fast> FUniqueNetIdMoonwardsRef;

@@ -2,7 +2,7 @@
 
 #include "OnlineSubsystemMoonwards.h"
 
-#include "OnlineIdentityMoonwards.h"
+#include "OnlineIdentity/OnlineIdentityMoonwards.h"
 #include "OSMWCommon.h"
 
 FOnlineSubsystemMoonwards::FOnlineSubsystemMoonwards(FName InInstanceName) : FOnlineSubsystemImpl(MOONWARDS_SUBSYSTEM, InInstanceName)

@@ -1,8 +1,10 @@
-﻿#include "OnlineIdentityMoonwards.h"
+﻿#include "OnlineIdentity/OnlineIdentityMoonwards.h"
 
 #include "APIModel/LoginRequestData.h"
 #include "JsonObjectConverter.h"
 #include "OSMWCommon.h"
+
+#include "OnlineIdentity/OnlineUserAccountMoonwards.h"
 
 
 FOnlineIdentityMoonwards::FOnlineIdentityMoonwards()
@@ -21,21 +23,38 @@ bool FOnlineIdentityMoonwards::Login(int32 LocalUserNum, const FOnlineAccountCre
 	Request->SetVerb("GET");
 	Request->SetHeader(TEXT("User-Agent"), "X-UnrealEngine-Agent");
 	Request->SetHeader("Content-Type", TEXT("application/json"));
+	// Crude way to pass this over until we implement a proper server to handle all logins.
+	// Request->SetHeader("LocalUserNum", FString::FromInt(LocalUserNum));
 	Request->ProcessRequest();
 	return true;
 }
 
 bool FOnlineIdentityMoonwards::Logout(int32 LocalUserNum)
 {
-	LoginStatus = ELoginStatus::Type::NotLoggedIn;
-
-	TriggerOnLoginChangedDelegates(0);
-	TriggerOnLogoutCompleteDelegates(0, true);
-	return true;
+	auto const UserId = UserIds.FindAndRemoveChecked(LocalUserNum);
+	auto const result = UserAccounts.Remove(UserId->ToString());
+	if(result > 0)
+	{
+		TriggerOnLoginChangedDelegates(LocalUserNum);
+		TriggerOnLogoutCompleteDelegates(LocalUserNum, true);
+		return true;
+	}
+	else
+	{
+		TriggerOnLogoutCompleteDelegates(LocalUserNum, false);
+		return false;
+	}
 }
 
 TSharedPtr<FUserOnlineAccount> FOnlineIdentityMoonwards::GetUserAccount(const FUniqueNetId& UserId) const
 {
+	// const TSharedRef<FUserOnlineAccountMoonwards>* FoundUserAccount = UserAccounts.Find(UserId.ToString());
+	// if (FoundUserAccount != nullptr)
+	// {
+	// 	TSharedPtr<FUserOnlineAccount> Result = *FoundUserAccount;
+	// 	return Result;
+	// }
+
 	return nullptr;
 }
 
@@ -47,50 +66,64 @@ bool FOnlineIdentityMoonwards::AutoLogin(int32 LocalUserNum)
 TArray<TSharedPtr<FUserOnlineAccount>> FOnlineIdentityMoonwards::GetAllUserAccounts() const
 {
 	return TArray<TSharedPtr<FUserOnlineAccount>>();
-
 }
 
 FUniqueNetIdPtr FOnlineIdentityMoonwards::GetUniquePlayerId(int32 LocalUserNum) const
 {
-	// return MakeShareable<FUniqueNetId>(UniqueNetId);
+	auto const FoundId = UserIds.Find(LocalUserNum);
+	if(FoundId)
+		return *FoundId;
 	return nullptr;
 }
 
 FUniqueNetIdPtr FOnlineIdentityMoonwards::CreateUniquePlayerId(uint8* Bytes, int32 Size)
 {
 	return nullptr;
-
 }
 
 FUniqueNetIdPtr FOnlineIdentityMoonwards::CreateUniquePlayerId(const FString& Str)
 {
-	return nullptr;
-
+	return MakeShareable( new FUniqueNetIdMoonwards(Str));
 }
 
 ELoginStatus::Type FOnlineIdentityMoonwards::GetLoginStatus(int32 LocalUserNum) const
 {
-	return LoginStatus;
+	FUniqueNetIdPtr const UserId = GetUniquePlayerId(LocalUserNum);
+	if (UserId.IsValid())
+	{
+		return GetLoginStatus(*UserId);
+	}
+	return ELoginStatus::NotLoggedIn;
 }
 
 ELoginStatus::Type FOnlineIdentityMoonwards::GetLoginStatus(const FUniqueNetId& UserId) const
 {
-	return LoginStatus;
+	TSharedPtr<FUserOnlineAccount> const UserAccount = GetUserAccount(UserId);
+	if (UserAccount.IsValid() &&
+		UserAccount->GetUserId()->IsValid() &&
+		!UserAccount->GetAccessToken().IsEmpty())
+	{
+		return ELoginStatus::LoggedIn;
+	}
+	return ELoginStatus::NotLoggedIn;
 }
 
 FString FOnlineIdentityMoonwards::GetPlayerNickname(int32 LocalUserNum) const
 {
-	return DisplayName;
+	FUniqueNetIdPtr const UserId = GetUniquePlayerId(LocalUserNum);
+	auto const UserAccount = GetUserAccount(*UserId);
+	return UserAccount->GetDisplayName();
 }
 
 FString FOnlineIdentityMoonwards::GetPlayerNickname(const FUniqueNetId& UserId) const
 {
-	return DisplayName;
+	return GetUserAccount(UserId)->GetDisplayName();
 }
 
 FString FOnlineIdentityMoonwards::GetAuthToken(int32 LocalUserNum) const
 {
-	return "";
+	FUniqueNetIdPtr const UserId = GetUniquePlayerId(LocalUserNum);
+	return GetUserAccount(*UserId)->GetAccessToken();
 }
 
 void FOnlineIdentityMoonwards::RevokeAuthToken(const FUniqueNetId& LocalUserId,
@@ -115,35 +148,36 @@ FString FOnlineIdentityMoonwards::GetAuthType() const
 
 void FOnlineIdentityMoonwards::OnLoginRequestCompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
-	FLoginRequestData res {};
+	FLoginRequestData LoginResult {};
+
 	if(!bWasSuccessful)
 	{
-		const TSharedRef<FLoginRequestData> LoginResponse = MakeShared<FLoginRequestData>(res);
+		FUniqueNetIdMoonwardsRef const UniqueNetId = MakeShared<FUniqueNetIdMoonwards>();
+		const TSharedRef<FLoginRequestData> LoginResponse = MakeShared<FLoginRequestData>(LoginResult);
 		TriggerOnLoginChangedDelegates(0);
-		TriggerOnLoginCompleteDelegates(0, false, UniqueNetId, "Login failed.");
+		TriggerOnLoginCompleteDelegates(0, false, UniqueNetId.Get(), "Login failed.");
 	}
 	
 	//Create a pointer to hold the json serialized data
 	TSharedPtr<FJsonObject> JsonObject;
-    
+    // const int32 LocalUserNum = FCString::Atoi( ToCStr(Request->GetHeader("LocalUserNum")));
 	const FString JsonString = Response->GetContentAsString();
-	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &res, 0, 0);
+	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &LoginResult, 0, 0);
 
-	const TSharedRef<FLoginRequestData> LoginResult = MakeShared<FLoginRequestData>(res);
+	FUniqueNetIdMoonwardsRef const UniqueNetId = MakeShared<FUniqueNetIdMoonwards>(LoginResult.Id);
 
-	UniqueNetId.UserId = LoginResult->Id;
-	DisplayName = LoginResult->Username;
+	FUserOnlineAccountMoonwardsRef const UserAccount = MakeShared<FUserOnlineAccountMoonwards>(LoginResult.Id, UniqueNetId.Get());
+	UserIds.Add(0, UniqueNetId);
+	UserAccounts.Add(UniqueNetId->ToString(), UserAccount);
 
-	if(!LoginResult->Id.IsEmpty())
+	if(!LoginResult.Id.IsEmpty())
 	{
-		LoginStatus = ELoginStatus::Type::LoggedIn;
-	
 		// Broadcast events using online subsystem syntax
 		TriggerOnLoginChangedDelegates(0);
-		TriggerOnLoginCompleteDelegates(0, true, UniqueNetId, FString() );
+		TriggerOnLoginCompleteDelegates(0, true, UniqueNetId.Get(), FString() );
 	}else
 	{
 		TriggerOnLoginChangedDelegates(0);
-		TriggerOnLoginCompleteDelegates(0, false, UniqueNetId, FString() );
+		TriggerOnLoginCompleteDelegates(0, false, UniqueNetId.Get(), FString() );
 	}
 }
