@@ -128,7 +128,7 @@ void UMWNPendingNetClient::NotifyControlMessage(UNetConnection* Connection, uint
 					Connection->OwningActor ? *Connection->OwningActor->GetName() : TEXT("No Owner"),
 					*ConnectionError);
 
-				Connection->Close();
+				Connection->Close(ENetCloseResult::Cleanup);
 				OnConnectionSequenceCompleted.Broadcast(this, false);
 			}
 
@@ -266,7 +266,7 @@ void UMWNPendingNetClient::NotifyControlMessage(UNetConnection* Connection, uint
 
 				// Force close the session
 				UE_LOG(LogNet, Warning, TEXT("%s: No delegate available to handle encryption ack, disconnecting."), *Connection->GetName());
-				Connection->Close();
+				Connection->Close(ENetCloseResult::Cleanup);
 
 				OnConnectionSequenceCompleted.Broadcast(this, false);
 			}
@@ -296,7 +296,8 @@ void UMWNPendingNetClient::FinalizeEncryptedConnection(const FEncryptionKeyRespo
 	UNetConnection* Connection = NetConnection.Get();
 	if (Connection)
 	{
-		if (Connection->State != USOCK_Invalid && Connection->State != USOCK_Closed && Connection->Driver)
+		EConnectionState const ConState = Connection->GetConnectionState();
+		if (ConState != USOCK_Invalid && ConState != USOCK_Closed && Connection->Driver)
 		{
 			if (EncryptionKeyResponse.Response == EEncryptionResponse::Success)
 			{
@@ -321,7 +322,7 @@ void UMWNPendingNetClient::FinalizeEncryptedConnection(const FEncryptionKeyRespo
 				FString ResponseStr(LexToString(EncryptionKeyResponse.Response));
 				UE_LOG(LogNet, Warning, TEXT("UPendingNetGame::FinalizeEncryptedConnection: encryption failure [%s] %s"), *ResponseStr, *EncryptionKeyResponse.ErrorMsg);
 				ConnectionError = TEXT("Encryption ack failure");
-				Connection->Close();
+				Connection->Close(ENetCloseResult::Cleanup);
 			}
 		}
 		else
@@ -329,7 +330,7 @@ void UMWNPendingNetClient::FinalizeEncryptedConnection(const FEncryptionKeyRespo
 			// This error will be resolved in TickWorldTravel()
 			UE_LOG(LogNet, Warning, TEXT("UPendingNetGame::FinalizeEncryptedConnection: connection in invalid state. %s"), *Connection->Describe());
 			ConnectionError = TEXT("Connection encryption state failure");
-			Connection->Close();
+			Connection->Close(ENetCloseResult::Cleanup);
 		}
 	}
 	else
@@ -383,7 +384,7 @@ void UMWNPendingNetClient::Tick(float DeltaTime)
 	//-V:NetDriver<<:522
 
 	// Handle timed out or failed connection.
-	if (NetDriver->ServerConnection->State == USOCK_Closed && ConnectionError == TEXT(""))
+	if (NetDriver->ServerConnection->GetConnectionState() == USOCK_Closed && ConnectionError == TEXT(""))
 	{
 		ConnectionError = NSLOCTEXT("Engine", "ConnectionFailed", "Your connection to the host has been lost.").ToString();
 		return;

@@ -5,8 +5,10 @@
 #include "CoreMinimal.h"
 #include "UObject/Object.h"
 #include "CoreMinimal.h"
+#include "Net/Core/Connection/NetCloseResult.h"
 #include "MWNPendingNetClient.generated.h"
 
+//@TODO: Update this to UE5 standard.
 DECLARE_EVENT_TwoParams(UMWNPendingNetClient, ConnectionSequenceCompletedEvent, UMWNPendingNetClient*, bool);
 /**
  * A wrapper that helps with client -> server connection and then notifies when ready to join, after a successful connection & handshake.
@@ -20,7 +22,7 @@ private:
 	GENERATED_BODY()
 
 public:
-
+	
 	UPROPERTY()
 	UNetDriver*		NetDriver;
 

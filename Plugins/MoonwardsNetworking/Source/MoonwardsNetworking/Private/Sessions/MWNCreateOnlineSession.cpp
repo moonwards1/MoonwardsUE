@@ -38,7 +38,7 @@ void UMWNCreateOnlineSession::Activate()
 		return;
 	}
 
-	const auto CurrentSession = SessionInterface->GetNamedSession(GameSessionName);
+	const auto CurrentSession = SessionInterface->GetNamedSession(NAME_GameSession);
 	if(!CurrentSession) // Create a new session when none exists
 	{
 		CreateSession();
@@ -73,13 +73,13 @@ void UMWNCreateOnlineSession::CreateSession()
 	SessionSettings.Set(MWN_SERVER_NAME, this->ServerName, MWN_DEFAULT_ADVERTISE_MODE);
 
 	OnCreateSessionCompleteDelegateHandle = SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UMWNCreateOnlineSession::CreateSessionCompleted);
-	SessionInterface->CreateSession(0, GameSessionName, SessionSettings);
+	SessionInterface->CreateSession(0, NAME_GameSession, SessionSettings);
 }
 
 void UMWNCreateOnlineSession::RecreateSession()
 {
 	OnDestroySessionCompleteDelegateHandle = SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UMWNCreateOnlineSession::DestroySessionCompleted);
-	SessionInterface->DestroySession(GameSessionName);
+	SessionInterface->DestroySession(NAME_GameSession);
 }
 
 void UMWNCreateOnlineSession::CreateSessionCompleted(FName SessionName, const bool bSucceeded) const

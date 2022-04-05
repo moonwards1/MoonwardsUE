@@ -31,7 +31,8 @@ public class MoonwardsNetworking : ModuleRules
 
 				"OnlineSubsystem", 
                 "OnlineSubsystemUtils",
-                
+                "NetCommon",
+                "NetCore",
                 "MoonwardsLogger",
                 // ... add other public dependencies that you statically link with here ...
 			}
