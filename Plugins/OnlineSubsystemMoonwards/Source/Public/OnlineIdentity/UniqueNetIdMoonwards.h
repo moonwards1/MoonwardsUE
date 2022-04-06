@@ -12,7 +12,8 @@ class FUniqueNetIdMoonwards : public FUniqueNetId
 public:
 
 	FUniqueNetIdMoonwards() {};
-	
+	virtual ~FUniqueNetIdMoonwards() override = default;
+
 	FUniqueNetIdMoonwards(const FString& UserId)
 		: UserId(UserId)
 	{

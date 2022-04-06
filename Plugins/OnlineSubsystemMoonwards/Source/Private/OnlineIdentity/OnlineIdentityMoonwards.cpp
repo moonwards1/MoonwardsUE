@@ -48,12 +48,12 @@ bool FOnlineIdentityMoonwards::Logout(int32 LocalUserNum)
 
 TSharedPtr<FUserOnlineAccount> FOnlineIdentityMoonwards::GetUserAccount(const FUniqueNetId& UserId) const
 {
-	// const TSharedRef<FUserOnlineAccountMoonwards>* FoundUserAccount = UserAccounts.Find(UserId.ToString());
-	// if (FoundUserAccount != nullptr)
-	// {
-	// 	TSharedPtr<FUserOnlineAccount> Result = *FoundUserAccount;
-	// 	return Result;
-	// }
+	const TSharedRef<FUserOnlineAccountMoonwards>* FoundUserAccount = UserAccounts.Find(UserId.ToString());
+	if (FoundUserAccount != nullptr)
+	{
+		TSharedPtr<FUserOnlineAccount> Result = *FoundUserAccount;
+		return Result;
+	}
 
 	return nullptr;
 }
@@ -167,6 +167,8 @@ void FOnlineIdentityMoonwards::OnLoginRequestCompleted(FHttpRequestPtr Request, 
 	FUniqueNetIdMoonwardsRef const UniqueNetId = MakeShared<FUniqueNetIdMoonwards>(LoginResult.Id);
 
 	FUserOnlineAccountMoonwardsRef const UserAccount = MakeShared<FUserOnlineAccountMoonwards>(LoginResult.Id, UniqueNetId.Get());
+	UserAccount->SetUserAttribute(USER_ATTR_DISPLAYNAME, LoginResult.Username);
+	
 	UserIds.Add(0, UniqueNetId);
 	UserAccounts.Add(UniqueNetId->ToString(), UserAccount);
 
