@@ -15,7 +15,7 @@ FOnlineIdentityMoonwards::FOnlineIdentityMoonwards()
 bool FOnlineIdentityMoonwards::Login(int32 LocalUserNum, const FOnlineAccountCredentials& AccountCredentials)
 {
 	//@TODO: validate and return false if credentials aren't valid.
-	
+	PendingLocalUserNum = LocalUserNum;
 	const TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
 	Request->OnProcessRequestComplete().BindRaw(this, &FOnlineIdentityMoonwards::OnLoginRequestCompleted);
 	//This is the url on which to process the request
@@ -78,7 +78,7 @@ FUniqueNetIdPtr FOnlineIdentityMoonwards::GetUniquePlayerId(int32 LocalUserNum) 
 
 FUniqueNetIdPtr FOnlineIdentityMoonwards::CreateUniquePlayerId(uint8* Bytes, int32 Size)
 {
-	return nullptr;
+	return MakeShareable(new FUniqueNetIdMoonwards(BytesToString(Bytes, Size)));
 }
 
 FUniqueNetIdPtr FOnlineIdentityMoonwards::CreateUniquePlayerId(const FString& Str)
@@ -152,7 +152,7 @@ void FOnlineIdentityMoonwards::OnLoginRequestCompleted(FHttpRequestPtr Request, 
 
 	if(!bWasSuccessful)
 	{
-		FUniqueNetIdMoonwardsRef const UniqueNetId = MakeShared<FUniqueNetIdMoonwards>();
+		FUniqueNetIdMoonwardsRef const UniqueNetId = MakeShared<FUniqueNetIdMoonwards>("");
 		const TSharedRef<FLoginRequestData> LoginResponse = MakeShared<FLoginRequestData>(LoginResult);
 		TriggerOnLoginChangedDelegates(0);
 		TriggerOnLoginCompleteDelegates(0, false, UniqueNetId.Get(), "Login failed.");
@@ -168,18 +168,17 @@ void FOnlineIdentityMoonwards::OnLoginRequestCompleted(FHttpRequestPtr Request, 
 
 	FUserOnlineAccountMoonwardsRef const UserAccount = MakeShared<FUserOnlineAccountMoonwards>(LoginResult.Id, UniqueNetId.Get());
 	UserAccount->SetUserAttribute(USER_ATTR_DISPLAYNAME, LoginResult.Username);
-	
-	UserIds.Add(0, UniqueNetId);
-	UserAccounts.Add(UniqueNetId->ToString(), UserAccount);
 
 	if(!LoginResult.Id.IsEmpty())
 	{
+		UserIds.Add(PendingLocalUserNum, UniqueNetId);
+		UserAccounts.Add(UniqueNetId->ToString(), UserAccount);
 		// Broadcast events using online subsystem syntax
-		TriggerOnLoginChangedDelegates(0);
-		TriggerOnLoginCompleteDelegates(0, true, UniqueNetId.Get(), FString() );
+		TriggerOnLoginChangedDelegates(PendingLocalUserNum);
+		TriggerOnLoginCompleteDelegates(PendingLocalUserNum, true, UniqueNetId.Get(), FString() );
 	}else
 	{
-		TriggerOnLoginChangedDelegates(0);
-		TriggerOnLoginCompleteDelegates(0, false, UniqueNetId.Get(), FString() );
+		TriggerOnLoginChangedDelegates(PendingLocalUserNum);
+		TriggerOnLoginCompleteDelegates(PendingLocalUserNum, false, UniqueNetId.Get(), FString() );
 	}
 }

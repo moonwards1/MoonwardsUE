@@ -26,6 +26,7 @@ protected:
 	FHttpModule* Http = nullptr;
 	TMap<FString, FUserOnlineAccountMoonwardsRef> UserAccounts;
 	TMap<int32, FUniqueNetIdMoonwardsRef> UserIds;
+	int32 PendingLocalUserNum;
 
 public:
 	virtual bool Login(int32 LocalUserNum, const FOnlineAccountCredentials& AccountCredentials) override;

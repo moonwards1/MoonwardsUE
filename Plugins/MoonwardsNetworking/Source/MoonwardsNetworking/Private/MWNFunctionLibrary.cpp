@@ -37,11 +37,12 @@ void UMWNFunctionLibrary::ConnectToServerSeamlessly(const UObject* WorldContextO
 	FURL Url;
 	Url.Host = "127.0.0.1";
 	Url.Port = 7777;
-
 	
 	const auto PlayerController = UGameplayStatics::GetPlayerController(WorldContextObject, 0);
-	UWorld* World = PlayerController->GetWorld();
-	const UGameInstance* GameInstance = World->GetGameInstance();
-	UMWNetworkingGameSubsystem* NetworkingSubsystem = GameInstance->GetSubsystem<UMWNetworkingGameSubsystem>();  
-	NetworkingSubsystem->ConnectToServer(World, Url);
+	PlayerController->ClientTravel("127.0.0.1", ETravelType::TRAVEL_Absolute, false);
+	
+	// UWorld* World = PlayerController->GetWorld();
+	// const UGameInstance* GameInstance = World->GetGameInstance();
+	// UMWNetworkingGameSubsystem* NetworkingSubsystem = GameInstance->GetSubsystem<UMWNetworkingGameSubsystem>();  
+	// NetworkingSubsystem->ConnectToServer(World, Url);
 }

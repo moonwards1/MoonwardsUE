@@ -3,6 +3,8 @@
 
 #include "OnlineSubsystemIdentity.h"
 
+#include "Interfaces/OnlineIdentityInterface.h"
+
 void UOnlineSubsystemIdentity::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);

@@ -2,6 +2,13 @@
 
 #include "OSMWCommon.h"
 
+FUniqueNetIdMoonwards::FUniqueNetIdMoonwards(const FString& UserId): UserId(UserId)
+{
+	UserIdByteSize = UserId.Len();
+	UserIdBytes = new uint8[UserIdByteSize];
+	StringToBytes(UserId, UserIdBytes, UserIdByteSize);
+}
+
 FName FUniqueNetIdMoonwards::GetType() const
 {
 	return MOONWARDS_SUBSYSTEM;
@@ -9,7 +16,7 @@ FName FUniqueNetIdMoonwards::GetType() const
 
 const uint8* FUniqueNetIdMoonwards::GetBytes() const
 {
-	return nullptr;
+	return new uint8[1] {0};
 }
 
 int32 FUniqueNetIdMoonwards::GetSize() const
@@ -19,7 +26,8 @@ int32 FUniqueNetIdMoonwards::GetSize() const
 
 bool FUniqueNetIdMoonwards::IsValid() const
 {
-	return !UserId.IsEmpty();
+	// return !UserId.IsEmpty();
+	return true;
 }
 
 FString FUniqueNetIdMoonwards::ToString() const

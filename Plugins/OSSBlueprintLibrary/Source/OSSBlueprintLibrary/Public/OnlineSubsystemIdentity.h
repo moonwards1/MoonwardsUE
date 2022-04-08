@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "OnlineSubsystem.h"
 
-#include "Interfaces/OnlineIdentityInterface.h"
+#include "Interfaces/VoiceInterface.h"
 
 #include "Subsystems/GameInstanceSubsystem.h"
 

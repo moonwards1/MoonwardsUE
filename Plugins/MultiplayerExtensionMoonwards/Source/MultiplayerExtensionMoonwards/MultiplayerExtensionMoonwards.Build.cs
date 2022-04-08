@@ -1,10 +1,10 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Some copyright should be here...
 
 using UnrealBuildTool;
 
-public class OnlineSubsystemMoonwards : ModuleRules
+public class MultiplayerExtensionMoonwards : ModuleRules
 {
-	public OnlineSubsystemMoonwards(ReadOnlyTargetRules Target) : base(Target)
+	public MultiplayerExtensionMoonwards(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		
@@ -25,19 +25,8 @@ public class OnlineSubsystemMoonwards : ModuleRules
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", 
-				"OnlineSubsystem",
-				"OnlineSubsystemUtils",
-				"HTTP", 
-				"Json", 
-				"JsonUtilities",
-                "AudioMixer", 
-                "SignalProcessing",
-                "AudioMixerCore",
-                "Voice",
-                "CoreOnline",
-                "NetCore"
-
+				"Core",
+				 "OnlineSubsystem",
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -49,7 +38,7 @@ public class OnlineSubsystemMoonwards : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"Slate",
-				"SlateCore", 
+				"SlateCore",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

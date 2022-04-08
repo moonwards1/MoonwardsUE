@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "OnlineSubsystemImpl.h"
 
+#include "OnlineVoice/OnlineVoiceMoonwards.h"
+
 typedef TSharedPtr<class FOnlineIdentityMoonwards, ESPMode::ThreadSafe> FOnlineIdentityMoonwardsPtr;
 
 /**
@@ -14,9 +16,13 @@ class ONLINESUBSYSTEMMOONWARDS_API FOnlineSubsystemMoonwards :
 	public FOnlineSubsystemImpl
 {
 
-	// FOnlineIdentityMW SessionInterface;
-
+private:
+	bool bTickerStarted = true;
+	bool bForceDedicated = false;
+	FTickerDelegate TickDelegate;
+	FTSTicker::FDelegateHandle TickerDelegateHandle;
 public:
+	virtual bool Shutdown() override;
 	virtual bool Init() override;
 	
 	virtual FText GetOnlineServiceName() const override;
@@ -31,11 +37,15 @@ PACKAGE_SCOPE:
 	virtual IOnlineFriendsPtr GetFriendsInterface() const override;
 	virtual IOnlineIdentityPtr GetIdentityInterface() const override;
 	virtual IOnlineUserPtr GetUserInterface() const override;
+	virtual IOnlineVoicePtr GetVoiceInterface() const override;
 	virtual FString GetAppId() const override;
-	
+	virtual bool IsDedicated() const override;
+	virtual bool IsLocalPlayer(const FUniqueNetId& UniqueId) const override;
+	virtual bool Tick(float DeltaTime) override;
+
 protected:
 	FOnlineIdentityMoonwardsPtr MoonwardsIdentity;
-
+	FOnlineVoiceMoonwardsPtr MoonwardsVoice;
 };
 
 typedef TSharedPtr<FOnlineSubsystemMoonwards, ESPMode::ThreadSafe> FOnlineSubsystemMoonwardsPtr;

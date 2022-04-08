@@ -9,23 +9,27 @@
 
 class FUniqueNetIdMoonwards : public FUniqueNetId
 {
+	
 public:
-
-	FUniqueNetIdMoonwards() {};
+	// FUniqueNetIdMoonwards(): UserIdBytes(nullptr), UserIdByteSize(0)
+	// {
+	// };
+	
 	virtual ~FUniqueNetIdMoonwards() override = default;
 
-	FUniqueNetIdMoonwards(const FString& UserId)
-		: UserId(UserId)
-	{
-	}
+	FUniqueNetIdMoonwards(const FString& UserId);
 
 	FUniqueNetIdMoonwards(const FUniqueNetId& Src)
 		: FUniqueNetId(Src)
 	{
 	}
 
+private:
 	FString UserId;
+	uint8* UserIdBytes;
+	int32 UserIdByteSize;
 
+public:
 	virtual FName GetType() const override;
 	virtual const uint8* GetBytes() const override;
 	virtual int32 GetSize() const override;
@@ -37,5 +41,5 @@ protected:
 	virtual bool Compare(const FUniqueNetId& Other) const override;
 };
 
-typedef TSharedPtr<FUniqueNetIdMoonwards, ESPMode::Fast> FUniqueNetIdMoonwardsPtr;
-typedef TSharedRef<FUniqueNetIdMoonwards, ESPMode::Fast> FUniqueNetIdMoonwardsRef;
+typedef TSharedPtr<FUniqueNetIdMoonwards, ESPMode::ThreadSafe> FUniqueNetIdMoonwardsPtr;
+typedef TSharedRef<FUniqueNetIdMoonwards, ESPMode::ThreadSafe> FUniqueNetIdMoonwardsRef;
