@@ -18,7 +18,7 @@ private:
 	TMap<FString, FString> AuthAttributes;
 	
 public:
-	FUserOnlineAccountMoonwards(FString& AccessToken, FUniqueNetIdMoonwards& UserId);
+	FUserOnlineAccountMoonwards(FString& AccessToken, FUniqueNetIdMoonwardsRef UserId);
 	virtual ~FUserOnlineAccountMoonwards() override;
 	
 	virtual FUniqueNetIdRef GetUserId() const override;

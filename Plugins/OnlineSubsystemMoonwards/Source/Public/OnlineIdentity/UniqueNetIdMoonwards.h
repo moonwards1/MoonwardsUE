@@ -19,15 +19,12 @@ public:
 
 	FUniqueNetIdMoonwards(const FString& UserId);
 
-	FUniqueNetIdMoonwards(const FUniqueNetId& Src)
-		: FUniqueNetId(Src)
-	{
-	}
-
+	FUniqueNetIdMoonwards(const FUniqueNetId& Src);
+	
 private:
 	FString UserId;
-	uint8* UserIdBytes;
-	int32 UserIdByteSize;
+	// This can be optimized away
+	TArray<uint8> UserIdBytes;
 
 public:
 	virtual FName GetType() const override;

@@ -15,10 +15,14 @@
 UCLASS(DisplayName = "GameMode Extended")
 class MULTIPLAYEREXTENSIONMOONWARDS_API AMWGameModeExtended : public AGameModeBase
 {
+private:
 	GENERATED_BODY()
-protected:
-	virtual void OnPostLogin(AController* NewPlayer) override;
+
+public:
 	virtual void BeginPlay() override;
-	void InitLoggedInPlayer(const FUniqueNetId& UserId);
-	void OnOnlineSubsystemLogin(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error);
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+
+protected:
+	void InitLoggedInPlayer(const FUniqueNetId& UserId) const;
+	void OnOnlineSubsystemLogin(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error) const;
 };

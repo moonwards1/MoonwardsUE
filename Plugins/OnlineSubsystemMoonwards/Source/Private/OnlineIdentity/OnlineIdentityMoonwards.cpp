@@ -166,7 +166,7 @@ void FOnlineIdentityMoonwards::OnLoginRequestCompleted(FHttpRequestPtr Request, 
 
 	FUniqueNetIdMoonwardsRef const UniqueNetId = MakeShared<FUniqueNetIdMoonwards>(LoginResult.Id);
 
-	FUserOnlineAccountMoonwardsRef const UserAccount = MakeShared<FUserOnlineAccountMoonwards>(LoginResult.Id, UniqueNetId.Get());
+	FUserOnlineAccountMoonwardsRef const UserAccount = MakeShared<FUserOnlineAccountMoonwards>(LoginResult.Id, UniqueNetId);
 	UserAccount->SetUserAttribute(USER_ATTR_DISPLAYNAME, LoginResult.Username);
 
 	if(!LoginResult.Id.IsEmpty())

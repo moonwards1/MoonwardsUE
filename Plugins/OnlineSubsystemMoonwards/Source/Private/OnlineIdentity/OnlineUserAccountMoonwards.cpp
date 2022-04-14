@@ -3,7 +3,7 @@
 
 #include "OnlineIdentity/OnlineUserAccountMoonwards.h"
 
-FUserOnlineAccountMoonwards::FUserOnlineAccountMoonwards(FString& AccessToken, FUniqueNetIdMoonwards& UniqueId) : UniqueNetId(MakeShareable<FUniqueNetIdMoonwards>(&UniqueId))
+FUserOnlineAccountMoonwards::FUserOnlineAccountMoonwards(FString& AccessToken, FUniqueNetIdMoonwardsRef UniqueId) : UniqueNetId(UniqueId)
 {
 	AuthAttributes.Add(AUTH_ATTR_ID_TOKEN, AccessToken);
 	this->AccessToken = AccessToken;

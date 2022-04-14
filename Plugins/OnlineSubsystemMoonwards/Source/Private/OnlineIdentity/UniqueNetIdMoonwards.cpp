@@ -4,9 +4,13 @@
 
 FUniqueNetIdMoonwards::FUniqueNetIdMoonwards(const FString& UserId): UserId(UserId)
 {
-	UserIdByteSize = UserId.Len();
-	UserIdBytes = new uint8[UserIdByteSize];
-	StringToBytes(UserId, UserIdBytes, UserIdByteSize);
+	UserIdBytes.AddUninitialized( UserId.Len());
+	// UserIdBytes = new uint8[UserIdByteSize];
+	StringToBytes(UserId, UserIdBytes.GetData(), UserId.Len());
+}
+
+FUniqueNetIdMoonwards::FUniqueNetIdMoonwards(const FUniqueNetId& Src): FUniqueNetId(Src)
+{
 }
 
 FName FUniqueNetIdMoonwards::GetType() const
@@ -16,7 +20,7 @@ FName FUniqueNetIdMoonwards::GetType() const
 
 const uint8* FUniqueNetIdMoonwards::GetBytes() const
 {
-	return new uint8[1] {0};
+	return UserIdBytes.GetData();
 }
 
 int32 FUniqueNetIdMoonwards::GetSize() const
@@ -26,8 +30,8 @@ int32 FUniqueNetIdMoonwards::GetSize() const
 
 bool FUniqueNetIdMoonwards::IsValid() const
 {
-	// return !UserId.IsEmpty();
-	return true;
+	return !UserId.IsEmpty();
+	// return true;
 }
 
 FString FUniqueNetIdMoonwards::ToString() const
@@ -37,7 +41,7 @@ FString FUniqueNetIdMoonwards::ToString() const
 
 FString FUniqueNetIdMoonwards::ToDebugString() const
 {
-	return MOONWARDS_SUBSYSTEM.ToString() + "_" + UserId;
+	return MOONWARDS_SUBSYSTEM.ToString() + ":" + UserId;
 }
 
 bool FUniqueNetIdMoonwards::Compare(const FUniqueNetId& Other) const

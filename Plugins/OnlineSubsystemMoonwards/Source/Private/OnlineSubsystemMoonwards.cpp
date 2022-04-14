@@ -81,16 +81,13 @@ bool FOnlineSubsystemMoonwards::IsLocalPlayer(const FUniqueNetId& UniqueId) cons
 {
 	if (!IsDedicated())
 	{
-		IOnlineIdentityPtr IdentityInt = GetIdentityInterface();
-		if (IdentityInt.IsValid())
+		IOnlineIdentityPtr IdentityInterface = GetIdentityInterface();
+		if (MoonwardsIdentity.IsValid())
 		{
-			for (int32 LocalUserNum = 0; LocalUserNum < MAX_LOCAL_PLAYERS; LocalUserNum++)
+			FUniqueNetIdPtr LocalUniqueId = IdentityInterface->GetUniquePlayerId(0);
+			if (LocalUniqueId.IsValid() && UniqueId == *LocalUniqueId)
 			{
-				FUniqueNetIdPtr LocalUniqueId = IdentityInt->GetUniquePlayerId(LocalUserNum);
-				if (LocalUniqueId.IsValid() && UniqueId == *LocalUniqueId)
-				{
-					return true;
-				}
+				return true;
 			}
 		}
 	}

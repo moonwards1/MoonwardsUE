@@ -5,15 +5,18 @@
 
 #include "OnlineSubsystem.h"
 
+#include "GameFramework/GameSession.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameFramework/PlayerState.h"
 
 #include "Interfaces/OnlineIdentityInterface.h"
 #include "Interfaces/VoiceInterface.h"
 
-void AMWGameModeExtended::OnPostLogin(AController* NewPlayer)
+#include "Kismet/GameplayStatics.h"
+
+void AMWGameModeExtended::PostLogin(APlayerController* NewPlayer)
 {
-	Super::OnPostLogin(NewPlayer);
+	Super::PostLogin(NewPlayer);
 	APlayerState const* PlayerState = NewPlayer->PlayerState;
 	FUniqueNetIdPtr const UniqueNetId = PlayerState->GetUniqueId().GetUniqueNetId();
 
@@ -34,24 +37,46 @@ void AMWGameModeExtended::BeginPlay()
 	}
 }
 
-void AMWGameModeExtended::InitLoggedInPlayer(const FUniqueNetId& UserId)
+void AMWGameModeExtended::InitLoggedInPlayer(const FUniqueNetId& UserId) const
 {
-	if(IOnlineSubsystem const* OnlineSubsystem = IOnlineSubsystem::Get())
+	IOnlineSubsystem const* OnlineSubsystem = IOnlineSubsystem::Get();
+	if(!UserId.IsValid() || !OnlineSubsystem)
 	{
-		if(UserId.IsValid())
-		if(IOnlineVoicePtr const OnlineVoice = OnlineSubsystem->GetVoiceInterface())
+		return;
+	}
+	
+	// Initialize login related data for local user
+	// this needs to be better organized
+	if(OnlineSubsystem->IsLocalPlayer(UserId))
+	{
+		
+		TObjectPtr<APlayerController> PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+		if(IsValid(PlayerController))
 		{
-			if(OnlineSubsystem->IsLocalPlayer(UserId))
-				OnlineVoice->RegisterLocalTalker(0);
-			else
-			{
-				OnlineVoice->RegisterRemoteTalker(UserId);
-			}
+			PlayerController->PlayerState->SetUniqueId((FUniqueNetIdRepl(UserId)));
+			FUniqueNetIdRepl UniqueIdRepl = PlayerController->PlayerState->GetUniqueId();
+			PlayerController->GetLocalPlayer()->SetCachedUniqueNetId(UniqueIdRepl);
+			UE_LOG_ONLINE_IDENTITY(Display, TEXT("Local player logged in with id: %s"), *UniqueIdRepl->ToString());
+			// GameSession->RegisterPlayer(PlayerController, ui, false);
+		}
+	}
+	// Handle voice registration
+	if(IOnlineVoicePtr const OnlineVoice = OnlineSubsystem->GetVoiceInterface())
+	{
+		if(OnlineSubsystem->IsLocalPlayer(UserId))
+		{
+			// This is a local player. In case their PlayerState came last during replication, reprocess muting
+			OnlineVoice->RegisterLocalTalker(0);
+			OnlineVoice->ProcessMuteChangeNotification();
+		}
+		else
+		{
+			OnlineVoice->RegisterRemoteTalker(UserId);
 		}
 	}
 }
 
-void AMWGameModeExtended::OnOnlineSubsystemLogin(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error)
+void AMWGameModeExtended::OnOnlineSubsystemLogin(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error) const
 {
 	if(bWasSuccessful && UserId.IsValid())
 		InitLoggedInPlayer(UserId);
