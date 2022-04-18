@@ -47,9 +47,14 @@ public:
 	virtual FPlatformUserId GetPlatformUserIdFromUniqueNetId(const FUniqueNetId& UniqueNetId) const override;
 	virtual FString GetAuthType() const override;
 
+
 private:
+	// Temporary until we implement a proper login server.
 	void OnLoginRequestCompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful);
+	// Temporary until we implement a proper login server.
+	virtual void AddPlayerAsLoggedIn(int32 LocalUserNum, FString const& Username, FString const& UniqueNetIdStr);
+
 
 };
 
-// typedef TSharedPtr<FOnlineIdentityMoonwards, ESPMode::ThreadSafe> FOnlineIdentityMoonwardsPtr;
+typedef TSharedPtr<class FOnlineIdentityMoonwards, ESPMode::ThreadSafe> FOnlineIdentityMoonwardsPtr;

@@ -8,9 +8,15 @@
 void UOnlineSubsystemIdentity::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	
-	OnlineIdentity = IOnlineSubsystem::Get()->GetIdentityInterface();
-	OnlineIdentity->OnLoginCompleteDelegates->AddUObject(this, &UOnlineSubsystemIdentity::OnClientLoggedIn);
+	IOnlineSubsystem* OnlineSubsystem = IOnlineSubsystem::Get();
+	if(OnlineSubsystem)
+	{
+		OnlineIdentity = OnlineSubsystem->GetIdentityInterface();
+		OnlineIdentity->OnLoginCompleteDelegates->AddUObject(this, &UOnlineSubsystemIdentity::OnClientLoggedIn);
+	}else
+	{
+		UE_LOG_ONLINE(Warning, TEXT("Online Subsystem Plugin: Failed to load Online Identity."));
+	}
 }
 
 void UOnlineSubsystemIdentity::TryClientLogin(FString AuthToken) const
@@ -30,9 +36,18 @@ bool UOnlineSubsystemIdentity::IsLocalClientLoggedIn() const
 	return OnlineIdentity->GetLoginStatus(0) == ELoginStatus::Type::LoggedIn;
 }
 
-ELoginStatusOss UOnlineSubsystemIdentity::GetLoginStatus(int32 LocalUserNum) const
+ELoginStatusOss UOnlineSubsystemIdentity::GetLoginStatus(const FUniqueNetIdRepl& UniqueNetId) const
 {
-	return static_cast<ELoginStatusOss>(OnlineIdentity->GetLoginStatus(LocalUserNum));
+	return static_cast<ELoginStatusOss>(OnlineIdentity->GetLoginStatus(*UniqueNetId.GetUniqueNetId()));
+}
+
+bool UOnlineSubsystemIdentity::IsLoggedIn(const FUniqueNetIdRepl& UniqueNetId)
+{
+	if(UniqueNetId.IsValid() && UniqueNetId->IsValid())
+	{
+		return OnlineIdentity->GetLoginStatus(*UniqueNetId.GetUniqueNetId()) == ELoginStatus::Type::LoggedIn;
+	}
+	return false;
 }
 
 void UOnlineSubsystemIdentity::OnClientLoggedIn(int32 LocalUserNum, bool bWasSuccessful,const FUniqueNetId& UserId, const FString& Error) const
@@ -42,8 +57,9 @@ void UOnlineSubsystemIdentity::OnClientLoggedIn(int32 LocalUserNum, bool bWasSuc
 		UE_LOG_ONLINE(Error, TEXT("Failed to login "))
 	
 	if(/*is Client and*/ LocalUserNum == 0)
-		
+	{
 		OnLocalClientLoginCompleted.Broadcast(bWasSuccessful);
+	}
 	//if(bIsServer)
 	OnRemoteClientLoginCompleted.Broadcast(LocalUserNum, bWasSuccessful);
 		

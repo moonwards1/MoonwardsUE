@@ -18,10 +18,50 @@ void AMWGameModeExtended::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 	APlayerState const* PlayerState = NewPlayer->PlayerState;
-	FUniqueNetIdPtr const UniqueNetId = PlayerState->GetUniqueId().GetUniqueNetId();
-
-	if(UniqueNetId.IsValid())
+	FUniqueNetIdRepl const UniqueNetId = PlayerState->GetUniqueId();
+	
+	if(UniqueNetId.IsValid() && UniqueNetId->IsValid())
+	{
+		if(ULocalPlayer* LocalPlayer = NewPlayer->GetLocalPlayer())
+		{
+			LocalPlayer->SetCachedUniqueNetId(UniqueNetId);
+		}
 		InitLoggedInPlayer(*UniqueNetId);
+	}
+}
+
+FString AMWGameModeExtended::InitNewPlayer(APlayerController* NewPlayerController, const FUniqueNetIdRepl& UniqueId,
+	const FString& Options, const FString& Portal)
+{
+	return Super::InitNewPlayer(NewPlayerController, UniqueId, Options, Portal);
+}
+
+void AMWGameModeExtended::PreLogin(const FString& Options, const FString& Address, const FUniqueNetIdRepl& UniqueId,
+                                   FString& ErrorMessage)
+{
+	Super::PreLogin(Options, Address, UniqueId, ErrorMessage);
+}
+
+APlayerController* AMWGameModeExtended::Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString& Portal,
+	const FString& Options, const FUniqueNetIdRepl& UniqueId, FString& ErrorMessage)
+{
+	APlayerController* PlayerController = Super::Login(NewPlayer, InRemoteRole, Portal, Options, UniqueId, ErrorMessage);
+
+	const bool bIsValidRemoteConnection = !Options.IsEmpty() && UniqueId.IsValid();
+	
+	IOnlineSubsystem const* OnlineSubsystem = IOnlineSubsystem::Get();
+	if(OnlineSubsystem && bIsValidRemoteConnection)
+	{
+		
+		const FString Name = UGameplayStatics::ParseOption(Options, "Name");
+		const IOnlineIdentityPtr OnlineIdentity = OnlineSubsystem->GetIdentityInterface();
+		if(OnlineIdentity.IsValid())
+		{
+			auto b = OnlineIdentity->Login(-1,
+				FOnlineAccountCredentials("", Name, UniqueId->ToString()));
+		}
+	}
+	return PlayerController;
 }
 
 void AMWGameModeExtended::BeginPlay()

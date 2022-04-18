@@ -42,6 +42,7 @@ public:
 	FLocalClientLoginCompletedDelegate OnLocalClientLoginCompleted;
 	
 	// Attempts to login to the OSS Server as a client.
+	// Temporary function to be replaced with web login later - the purpose is to get an auth token.
 	UFUNCTION(BlueprintCallable, Category = "OSS Identity | Client")
 	void TryClientLogin(FString AuthToken) const;
 
@@ -63,7 +64,10 @@ public:
 	FRemoteClientLoginCompletedDelegate OnRemoteClientLoginCompleted;
 
 	UFUNCTION(BlueprintCallable, Category = "OSS Identity | Server")
-	ELoginStatusOss GetLoginStatus(int32 LocalUserNum) const;
+	ELoginStatusOss GetLoginStatus(const FUniqueNetIdRepl& UniqueNetId) const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "OSS Identity | Server")
+	bool IsLoggedIn(const FUniqueNetIdRepl& UniqueNetId);
 	
 	/*
 	 * CALLBACKS

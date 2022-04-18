@@ -2,6 +2,7 @@
 
 #include "APIModel/LoginRequestData.h"
 #include "JsonObjectConverter.h"
+#include "OnlineSubsystem.h"
 #include "OSMWCommon.h"
 
 #include "OnlineIdentity/OnlineUserAccountMoonwards.h"
@@ -14,18 +15,25 @@ FOnlineIdentityMoonwards::FOnlineIdentityMoonwards()
 
 bool FOnlineIdentityMoonwards::Login(int32 LocalUserNum, const FOnlineAccountCredentials& AccountCredentials)
 {
-	//@TODO: validate and return false if credentials aren't valid.
-	PendingLocalUserNum = LocalUserNum;
-	const TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
-	Request->OnProcessRequestComplete().BindRaw(this, &FOnlineIdentityMoonwards::OnLoginRequestCompleted);
-	//This is the url on which to process the request
-	Request->SetURL(MOONWARDS_API_URL + "login/" + AccountCredentials.Token);
-	Request->SetVerb("GET");
-	Request->SetHeader(TEXT("User-Agent"), "X-UnrealEngine-Agent");
-	Request->SetHeader("Content-Type", TEXT("application/json"));
-	// Crude way to pass this over until we implement a proper server to handle all logins.
-	// Request->SetHeader("LocalUserNum", FString::FromInt(LocalUserNum));
-	Request->ProcessRequest();
+	if(LocalUserNum == 0)
+	{
+		//@TODO: validate and return false if credentials aren't valid.
+		PendingLocalUserNum = LocalUserNum;
+		const TSharedRef<IHttpRequest, ESPMode::ThreadSafe> Request = Http->CreateRequest();
+		Request->OnProcessRequestComplete().BindRaw(this, &FOnlineIdentityMoonwards::OnLoginRequestCompleted);
+		//This is the url on which to process the request
+		Request->SetURL(MOONWARDS_API_URL + "login/" + AccountCredentials.Token);
+		Request->SetVerb("GET");
+		Request->SetHeader(TEXT("User-Agent"), "X-UnrealEngine-Agent");
+		Request->SetHeader("Content-Type", TEXT("application/json"));
+		// Crude way to pass this over until we implement a proper server to handle all logins.
+		// Request->SetHeader("LocalUserNum", FString::FromInt(LocalUserNum));
+		Request->ProcessRequest();
+	}else
+	{
+		// temporary til we implement proper login server
+		AddPlayerAsLoggedIn(LocalUserNum, AccountCredentials.Id, AccountCredentials.Token);
+	}
 	return true;
 }
 
@@ -98,6 +106,7 @@ ELoginStatus::Type FOnlineIdentityMoonwards::GetLoginStatus(int32 LocalUserNum) 
 
 ELoginStatus::Type FOnlineIdentityMoonwards::GetLoginStatus(const FUniqueNetId& UserId) const
 {
+	// Should cache these statuses and add proper logic to handle temporary logouts etc.
 	TSharedPtr<FUserOnlineAccount> const UserAccount = GetUserAccount(UserId);
 	if (UserAccount.IsValid() &&
 		UserAccount->GetUserId()->IsValid() &&
@@ -138,7 +147,7 @@ void FOnlineIdentityMoonwards::GetUserPrivilege(const FUniqueNetId& LocalUserId,
 
 FPlatformUserId FOnlineIdentityMoonwards::GetPlatformUserIdFromUniqueNetId(const FUniqueNetId& UniqueId) const
 {
-	return 0;
+	return FPlatformMisc::GetPlatformUserForUserIndex(0);
 }
 
 FString FOnlineIdentityMoonwards::GetAuthType() const
@@ -146,21 +155,51 @@ FString FOnlineIdentityMoonwards::GetAuthType() const
 	return "";
 }
 
+void FOnlineIdentityMoonwards::AddPlayerAsLoggedIn(int32 LocalUserNum, FString const& Username, FString const& UniqueNetIdStr)
+{
+	FUniqueNetIdMoonwardsRef UniqueNetId = MakeShared<FUniqueNetIdMoonwards>(UniqueNetIdStr);
+
+	FUserOnlineAccountMoonwardsRef const UserAccount = MakeShared<FUserOnlineAccountMoonwards>(Username, UniqueNetId);
+	UserAccount->SetUserAttribute(USER_ATTR_DISPLAYNAME, Username);
+
+	if(UniqueNetId->IsValid())
+	{
+		UserIds.Add(LocalUserNum, UniqueNetId);
+		UserAccounts.Add(UniqueNetId->ToString(), UserAccount);
+		UE_LOG_ONLINE_IDENTITY(Display, TEXT("Added user to logged in players. Username: %s, Id: %s"), *Username, *UniqueNetIdStr);
+
+		// TriggerOnLoginStatusChangedDelegates()
+		// Broadcast events using online subsystem syntax
+		TriggerOnLoginStatusChangedDelegates(LocalUserNum, ELoginStatus::Type::NotLoggedIn, ELoginStatus::Type::LoggedIn, UniqueNetId.Get());
+		TriggerOnLoginChangedDelegates(LocalUserNum);
+		TriggerOnLoginCompleteDelegates(LocalUserNum, true, UniqueNetId.Get(), FString() );
+
+	}else
+	{
+		UE_LOG_ONLINE_IDENTITY(Display, TEXT("Failed to add user to logged in players. Username: %s, Id: %s"), *Username, *UniqueNetIdStr);
+
+		TriggerOnLoginStatusChangedDelegates(LocalUserNum, ELoginStatus::Type::NotLoggedIn, ELoginStatus::Type::NotLoggedIn, UniqueNetId.Get());
+		TriggerOnLoginChangedDelegates(LocalUserNum);
+		TriggerOnLoginCompleteDelegates(LocalUserNum, false, UniqueNetId.Get(), "Login failed." );
+	}
+}
+
 void FOnlineIdentityMoonwards::OnLoginRequestCompleted(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 {
 	FLoginRequestData LoginResult {};
 
+	// Clean this up
 	if(!bWasSuccessful)
 	{
 		FUniqueNetIdMoonwardsRef const UniqueNetId = MakeShared<FUniqueNetIdMoonwards>("");
 		const TSharedRef<FLoginRequestData> LoginResponse = MakeShared<FLoginRequestData>(LoginResult);
-		TriggerOnLoginChangedDelegates(0);
-		TriggerOnLoginCompleteDelegates(0, false, UniqueNetId.Get(), "Login failed.");
+		TriggerOnLoginStatusChangedDelegates(PendingLocalUserNum, ELoginStatus::Type::NotLoggedIn, ELoginStatus::Type::NotLoggedIn, UniqueNetId.Get());
+		TriggerOnLoginChangedDelegates(PendingLocalUserNum);
+		TriggerOnLoginCompleteDelegates(PendingLocalUserNum, false, UniqueNetId.Get(), "Login failed." );
 	}
 	
 	//Create a pointer to hold the json serialized data
 	TSharedPtr<FJsonObject> JsonObject;
-    // const int32 LocalUserNum = FCString::Atoi( ToCStr(Request->GetHeader("LocalUserNum")));
 	const FString JsonString = Response->GetContentAsString();
 	FJsonObjectConverter::JsonObjectStringToUStruct(JsonString, &LoginResult, 0, 0);
 
@@ -169,16 +208,5 @@ void FOnlineIdentityMoonwards::OnLoginRequestCompleted(FHttpRequestPtr Request, 
 	FUserOnlineAccountMoonwardsRef const UserAccount = MakeShared<FUserOnlineAccountMoonwards>(LoginResult.Id, UniqueNetId);
 	UserAccount->SetUserAttribute(USER_ATTR_DISPLAYNAME, LoginResult.Username);
 
-	if(!LoginResult.Id.IsEmpty())
-	{
-		UserIds.Add(PendingLocalUserNum, UniqueNetId);
-		UserAccounts.Add(UniqueNetId->ToString(), UserAccount);
-		// Broadcast events using online subsystem syntax
-		TriggerOnLoginChangedDelegates(PendingLocalUserNum);
-		TriggerOnLoginCompleteDelegates(PendingLocalUserNum, true, UniqueNetId.Get(), FString() );
-	}else
-	{
-		TriggerOnLoginChangedDelegates(PendingLocalUserNum);
-		TriggerOnLoginCompleteDelegates(PendingLocalUserNum, false, UniqueNetId.Get(), FString() );
-	}
+	AddPlayerAsLoggedIn(PendingLocalUserNum, LoginResult.Id, LoginResult.Username);
 }
