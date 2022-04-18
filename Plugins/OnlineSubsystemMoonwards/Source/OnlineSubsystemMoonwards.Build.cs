@@ -20,21 +20,15 @@ public class OnlineSubsystemMoonwards : ModuleRules
 				// ... add other private include paths required here ...
 			}
 			);
-			
 		
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core", 
 				"OnlineSubsystem",
 				"OnlineSubsystemUtils",
 				"HTTP", 
 				"Json", 
 				"JsonUtilities",
-                "AudioMixer", 
-                "SignalProcessing",
-                "AudioMixerCore",
-                "Voice",
                 "CoreOnline",
                 "NetCore"
 
@@ -46,10 +40,16 @@ public class OnlineSubsystemMoonwards : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
+				"Core", 
 				"CoreUObject",
 				"Engine",
 				"Slate",
 				"SlateCore", 
+				"SignalProcessing",
+				"AudioMixerCore",
+				"Voice",
+				"AudioMixer"
+
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

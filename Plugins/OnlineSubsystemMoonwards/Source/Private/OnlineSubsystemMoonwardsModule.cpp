@@ -21,11 +21,14 @@ void FOnlineSubsystemMoonwardsModule::StartupModule()
 
 void FOnlineSubsystemMoonwardsModule::ShutdownModule()
 {
-	UE_LOG_ONLINE(Log, TEXT("Moonwards Online Subsystem Shutdown!"));
+	if(MoonwardsFactory)
+	{
+		UE_LOG_ONLINE(Log, TEXT("Moonwards Online Subsystem Shutdown!"));
 
-	FOnlineSubsystemModule& OSS = FModuleManager::GetModuleChecked<FOnlineSubsystemModule>("OnlineSubsystem");
-	OSS.UnregisterPlatformService(MOONWARDS_SUBSYSTEM);
+		FOnlineSubsystemModule& OSS = FModuleManager::GetModuleChecked<FOnlineSubsystemModule>("OnlineSubsystem");
+		OSS.UnregisterPlatformService(MOONWARDS_SUBSYSTEM);
 
-	delete MoonwardsFactory;
-	MoonwardsFactory = nullptr;
+		delete MoonwardsFactory;
+		MoonwardsFactory = nullptr;
+	}
 }

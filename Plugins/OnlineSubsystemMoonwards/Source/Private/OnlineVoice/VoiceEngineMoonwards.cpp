@@ -761,7 +761,7 @@ bool FVoiceEngineMoonwards::PatchRemoteTalkerOutputToEndpoint(const FString& InD
 		MuteAudioEngineOutputCVar->Set(1, ECVF_SetByGameSetting);
 	}
 	
-	TUniquePtr<FVoiceEndpoint>& Endpoint = ExternalEndpoints.Emplace_GetRef(new FVoiceEndpoint(InDeviceName, UVOIPStatics::GetVoiceSampleRate(), UVOIPStatics::GetVoiceNumChannels()));
+	TUniquePtr<FVoiceEndpointMW>& Endpoint = ExternalEndpoints.Emplace_GetRef(new FVoiceEndpointMW(InDeviceName, UVOIPStatics::GetVoiceSampleRate(), UVOIPStatics::GetVoiceNumChannels()));
 	Audio::FPatchOutputStrongPtr OutputPatch = AllRemoteTalkerAudio.AddNewOutput(4096 * 2, 1.0f);
 	Endpoint->PatchInOutput(OutputPatch);
 	return true;
@@ -770,7 +770,7 @@ bool FVoiceEngineMoonwards::PatchRemoteTalkerOutputToEndpoint(const FString& InD
 bool FVoiceEngineMoonwards::PatchLocalTalkerOutputToEndpoint(const FString& InDeviceName)
 {
 	// Local talker patched output is always mixed down to mono.
-	TUniquePtr<FVoiceEndpoint>& Endpoint = ExternalEndpoints.Emplace_GetRef(new FVoiceEndpoint(InDeviceName, UVOIPStatics::GetVoiceSampleRate(), 1));
+	TUniquePtr<FVoiceEndpointMW>& Endpoint = ExternalEndpoints.Emplace_GetRef(new FVoiceEndpointMW(InDeviceName, UVOIPStatics::GetVoiceSampleRate(), 1));
 	Audio::FPatchOutputStrongPtr OutputPatch = VoiceCapture->GetMicrophoneAudio(4096 * 2, 1.0f);
 	Endpoint->PatchInOutput(OutputPatch);
 	return true;
@@ -809,7 +809,8 @@ IOnlineSubsystem* FVoiceEngineMoonwards::GetOnlineSubSystem()
 	return OnlineSubsystem;
 }
 
-FVoiceEndpoint::FVoiceEndpoint(const FString& InEndpointName, float InSampleRate, int32 InNumChannels)
+
+FVoiceEndpointMW::FVoiceEndpointMW(const FString& InEndpointName, float InSampleRate, int32 InNumChannels)
 	: NumChannelsComingIn(InNumChannels)
 {
 	check(GEngine && GEngine->GetAudioDeviceManager());
@@ -855,7 +856,7 @@ FVoiceEndpoint::FVoiceEndpoint(const FString& InEndpointName, float InSampleRate
 	}
 }
 
-FVoiceEndpoint::~FVoiceEndpoint()
+FVoiceEndpointMW::~FVoiceEndpointMW()
 {
 	if (PlatformEndpoint.IsValid())
 	{
@@ -864,13 +865,13 @@ FVoiceEndpoint::~FVoiceEndpoint()
 	}
 }
 
-void FVoiceEndpoint::PatchInOutput(Audio::FPatchOutputStrongPtr& InOutput)
+void FVoiceEndpointMW::PatchInOutput(Audio::FPatchOutputStrongPtr& InOutput)
 {
 	FScopeLock ScopeLock(&OutputPatchCriticalSection);
 	OutputPatch = InOutput;
 }
 
-bool FVoiceEndpoint::OnProcessAudioStream(Audio::FAlignedFloatBuffer& OutputBuffer)
+bool FVoiceEndpointMW::OnProcessAudioStream(Audio::FAlignedFloatBuffer& OutputBuffer)
 {
 	FScopeLock ScopeLock(&OutputPatchCriticalSection);
 
@@ -900,7 +901,7 @@ bool FVoiceEndpoint::OnProcessAudioStream(Audio::FAlignedFloatBuffer& OutputBuff
 	return true;
 }
 
-void FVoiceEndpoint::OnAudioStreamShutdown()
+void FVoiceEndpointMW::OnAudioStreamShutdown()
 {
 	// Nothing to do here.
 }

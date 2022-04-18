@@ -3,7 +3,37 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AudioDevice.h"
+#include "OnlineVoiceMoonwards.h"
 #include "VoiceEngineImpl.h"
+
+class FVoiceEndpointMW : Audio::IAudioMixer
+{
+public:
+	FVoiceEndpointMW(const FString& InEndpointName, float InSampleRate, int32 InNumChannels);
+	virtual ~FVoiceEndpointMW();
+
+	void PatchInOutput(Audio::FPatchOutputStrongPtr& InOutput);
+
+
+	// Begin of IAudioMixer overrides
+	bool OnProcessAudioStream(Audio::AlignedFloatBuffer& OutputBuffer) override;
+	void OnAudioStreamShutdown() override;
+	// End of IAudioMixer overrides
+
+	private:
+	int32 NumChannelsComingIn;
+	Audio::FAlignedFloatBuffer DownmixBuffer;
+
+	TUniquePtr<Audio::IAudioMixerPlatformInterface> PlatformEndpoint;
+
+	Audio::FAudioMixerOpenStreamParams OpenParams;
+	Audio::FAudioPlatformDeviceInfo PlatformDeviceInfo;
+	
+	Audio::FPatchOutputStrongPtr OutputPatch;
+	FCriticalSection OutputPatchCriticalSection;
+};
+
 
 /**
  * 
@@ -88,10 +118,10 @@ class ONLINESUBSYSTEMMOONWARDS_API FVoiceEngineMoonwards : public IVoiceEngine, 
 
 	/**
 	 * Collection of external endpoints that we are sending local or remote audio to. 
-	 * Note that we need to wrap each FVoiceEndpoint in a unique pointer to ensure the FVoiceEndpoint itself isn't moved elsewhere.
+	 * Note that we need to wrap each FVoiceEndpointMW in a unique pointer to ensure the FVoiceEndpointMW itself isn't moved elsewhere.
 	 * Otherwise, this will cause a crash in FOutputBuffer::MixNextBuffer(), due to AudioMixer->OnProcessAudioStream(); being called on a stale pointer. 
 	 */
-	TArray<TUniquePtr<FVoiceEndpoint>> ExternalEndpoints;
+	TArray<TUniquePtr<FVoiceEndpointMW>> ExternalEndpoints;
 
 	IOnlineSubsystem* OnlineSubsystem;
 protected:

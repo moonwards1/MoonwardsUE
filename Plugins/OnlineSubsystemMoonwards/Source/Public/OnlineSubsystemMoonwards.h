@@ -5,9 +5,10 @@
 #include "CoreMinimal.h"
 #include "OnlineSubsystemImpl.h"
 
+#include "OnlineIdentity/OnlineIdentityMoonwards.h"
+
 #include "OnlineVoice/OnlineVoiceMoonwards.h"
 
-typedef TSharedPtr<class FOnlineIdentityMoonwards, ESPMode::ThreadSafe> FOnlineIdentityMoonwardsPtr;
 
 /**
  * 

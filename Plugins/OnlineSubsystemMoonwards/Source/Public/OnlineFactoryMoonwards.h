@@ -13,9 +13,6 @@
  */
 class FOnlineFactoryMoonwards : public IOnlineFactory
 {
-private:
-	/** Single instantiation of the interface */
-	static FOnlineSubsystemMoonwardsPtr OnlineSub;
 public:
 
 	FOnlineFactoryMoonwards();

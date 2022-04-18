@@ -7,20 +7,27 @@
 
 FOnlineSubsystemMoonwards::FOnlineSubsystemMoonwards(FName InInstanceName) : FOnlineSubsystemImpl(MOONWARDS_SUBSYSTEM, InInstanceName)
 {
-	TickDelegate = FTickerDelegate::CreateRaw(this, &FTSTickerObjectBase::Tick);
-	TickerDelegateHandle = FTSTicker::GetCoreTicker().AddTicker(TickDelegate, 0);
+	// TickDelegate = FTickerDelegate::CreateThreadSafeSP(this, &FTSTickerObjectBase::Tick);
+	// TickerDelegateHandle = FTSTicker::GetCoreTicker().AddTicker(TickDelegate, 0);
 }
 
 bool FOnlineSubsystemMoonwards::Shutdown()
 {
-	FTSTicker::GetCoreTicker().RemoveTicker(TickerDelegateHandle);
+	MoonwardsIdentity = nullptr;
+	if(MoonwardsVoice.IsValid())
+	{
+		MoonwardsVoice->Shutdown();
+	}
+	MoonwardsVoice = nullptr;
+	// FTSTicker::GetCoreTicker().RemoveTicker(TickerDelegateHandle);
 	return FOnlineSubsystemImpl::Shutdown();
+	return true;
 }
 
 bool FOnlineSubsystemMoonwards::Init()
 {
-	MoonwardsIdentity = MakeShared<FOnlineIdentityMoonwards, ESPMode::ThreadSafe>();
-	MoonwardsVoice = MakeShared<FOnlineVoiceMoonwards, ESPMode::ThreadSafe>(this);
+	MoonwardsIdentity = MakeShareable(new FOnlineIdentityMoonwards());
+	MoonwardsVoice = MakeShareable(new FOnlineVoiceMoonwards(this));
 	MoonwardsVoice->Init();
 
 	return true;
@@ -33,7 +40,6 @@ FText FOnlineSubsystemMoonwards::GetOnlineServiceName() const
 
 FOnlineSubsystemMoonwards::~FOnlineSubsystemMoonwards()
 {
-    FOnlineSubsystemImpl::~FOnlineSubsystemImpl();
 }
 
 FName FOnlineSubsystemMoonwards::GetSubsystemName() const
