@@ -22,10 +22,6 @@ void AMWGameModeExtended::PostLogin(APlayerController* NewPlayer)
 	
 	if(UniqueNetId.IsValid() && UniqueNetId->IsValid())
 	{
-		if(ULocalPlayer* LocalPlayer = NewPlayer->GetLocalPlayer())
-		{
-			LocalPlayer->SetCachedUniqueNetId(UniqueNetId);
-		}
 		InitLoggedInPlayer(*UniqueNetId);
 	}
 }
@@ -100,20 +96,7 @@ void AMWGameModeExtended::InitLoggedInPlayer(const FUniqueNetId& UserId) const
 			// GameSession->RegisterPlayer(PlayerController, ui, false);
 		}
 	}
-	// Handle voice registration
-	if(IOnlineVoicePtr const OnlineVoice = OnlineSubsystem->GetVoiceInterface())
-	{
-		if(OnlineSubsystem->IsLocalPlayer(UserId))
-		{
-			// This is a local player. In case their PlayerState came last during replication, reprocess muting
-			OnlineVoice->RegisterLocalTalker(0);
-			OnlineVoice->ProcessMuteChangeNotification();
-		}
-		else
-		{
-			OnlineVoice->RegisterRemoteTalker(UserId);
-		}
-	}
+
 }
 
 void AMWGameModeExtended::OnOnlineSubsystemLogin(int32 LocalUserNum, bool bWasSuccessful, const FUniqueNetId& UserId, const FString& Error) const

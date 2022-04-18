@@ -1,4 +1,4 @@
-﻿#include "OnlineIdentity/OnlineIdentityMoonwards.h"
+#include "OnlineIdentity/OnlineIdentityMoonwards.h"
 
 #include "APIModel/LoginRequestData.h"
 #include "JsonObjectConverter.h"
@@ -126,7 +126,12 @@ FString FOnlineIdentityMoonwards::GetPlayerNickname(int32 LocalUserNum) const
 
 FString FOnlineIdentityMoonwards::GetPlayerNickname(const FUniqueNetId& UserId) const
 {
-	return GetUserAccount(UserId)->GetDisplayName();
+	const TSharedPtr<FUserOnlineAccount> UserAcc = GetUserAccount(UserId);
+	if(UserAcc.IsValid())
+	{
+		return UserAcc->GetDisplayName();
+	}
+	return "";
 }
 
 FString FOnlineIdentityMoonwards::GetAuthToken(int32 LocalUserNum) const
@@ -161,7 +166,7 @@ void FOnlineIdentityMoonwards::AddPlayerAsLoggedIn(int32 LocalUserNum, FString c
 
 	FUserOnlineAccountMoonwardsRef const UserAccount = MakeShared<FUserOnlineAccountMoonwards>(Username, UniqueNetId);
 	UserAccount->SetUserAttribute(USER_ATTR_DISPLAYNAME, Username);
-
+	
 	if(UniqueNetId->IsValid())
 	{
 		UserIds.Add(LocalUserNum, UniqueNetId);
@@ -208,5 +213,5 @@ void FOnlineIdentityMoonwards::OnLoginRequestCompleted(FHttpRequestPtr Request, 
 	FUserOnlineAccountMoonwardsRef const UserAccount = MakeShared<FUserOnlineAccountMoonwards>(LoginResult.Id, UniqueNetId);
 	UserAccount->SetUserAttribute(USER_ATTR_DISPLAYNAME, LoginResult.Username);
 
-	AddPlayerAsLoggedIn(PendingLocalUserNum, LoginResult.Id, LoginResult.Username);
+	AddPlayerAsLoggedIn(PendingLocalUserNum, LoginResult.Username, LoginResult.Id);
 }

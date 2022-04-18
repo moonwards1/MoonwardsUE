@@ -12,7 +12,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(DisplayName = "GameState Extended")
 class MULTIPLAYEREXTENSIONMOONWARDS_API AMWGameStateExtended : public AGameStateBase
 {
 	GENERATED_BODY()
