@@ -31,3 +31,7 @@ MoonwardsUE.sln.DotSettings.user
 
 MoonwardsUE.uproject.DotSettings.user
 MoonwardsUE.uproject
+
+Build/
+
+Package/

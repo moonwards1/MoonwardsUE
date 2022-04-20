@@ -21,8 +21,10 @@ public:
 	
 	/**
 	 * Connects to the server without reloading the map.
-	 * @param WorldContextObject 
+	 * @param WorldContextObject
+	 * @param IpAddress
+	 * @param Port 
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Moonwards Networking | Server", meta = (WorldContext = "WorldContextObject"))
-	static void ConnectToServerSeamlessly(const UObject* WorldContextObject);
+	static void ConnectToServerSeamlessly(const UObject* WorldContextObject, FString IpAddress = "127.0.0.1", int Port = 7777);
 };
