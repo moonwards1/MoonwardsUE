@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "5.0",
+	"EngineAssociation": "{D754ED96-F937-47BA-BF13-F141307FECEF}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -33,10 +33,6 @@
 		},
 		{
 			"Name": "CommonUI",
-			"Enabled": true
-		},
-		{
-			"Name": "AlterMesh",
 			"Enabled": true
 		}
 	]
