@@ -37,7 +37,7 @@
 		},
 		{
 			"Name": "AlterMesh",
-			"Enabled": true
+			"Enabled": false
 		}
 	]
 }
