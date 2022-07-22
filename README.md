@@ -9,8 +9,7 @@ Software packages like GitHub Desktop or GitKraken *should* automatically clone 
 If that doesn't happen, in a terminal enter this:
     `git-lfs fetch`
     
-then
-
-    `git-lfs checkout .`
+and after that's done enter:  
+ `git-lfs checkout .`
 
 That will pull all LFS files.
